@@ -1,0 +1,28 @@
+name: Windows-11-Chrome-RD
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: ดาวน์โหลดและติดตั้ง Chrome Remote Desktop
+        run: |
+          Invoke-WebRequest -Uri https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi -OutFile chromeremotedesktophost.msi
+          Start-Process msiexec.exe -ArgumentList '/i chromeremotedesktophost.msi /qn' -Wait
+          
+      - name: เปิดการใช้งานและเชื่อมต่อ
+        shell: powershell
+        run: |
+          # ใช้รหัสจาก Secrets ที่คุณคัดลอกมาจาก Google
+          ${{ secrets.CHROME_DESKTOP_CODE }} --pin=${{ secrets.PIN }}
+          
+      - name: ป้องกัน Workflow ปิดตัว (รันต่อเนื่อง 6 ชั่วโมง)
+        run: |
+          $n = 360
+          do {
+            Write-Host "Windows กำลังทำงาน... เหลือเวลาอีกประมาณ $n นาที"
+            Start-Sleep -Seconds 60
+            $n--
+          } while ($n -gt 0)
