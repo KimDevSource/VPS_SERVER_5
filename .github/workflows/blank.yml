@@ -1,28 +1,38 @@
-name: Windows-11-Chrome-RD
+name: Windows-11-Remote-Custom
 
 on: 
   workflow_dispatch:
+    inputs:
+      auth_code:
+        description: 'วางโค้ด Windows (PowerShell) จาก Chrome Remote Desktop'
+        required: true
+        default: ''
+      pincode:
+        description: 'ตั้งรหัส PIN 6 หลัก'
+        required: true
+        default: '123456'
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: ดาวน์โหลดและติดตั้ง Chrome Remote Desktop
+      - name: ติดตั้ง Chrome Remote Desktop
         run: |
           Invoke-WebRequest -Uri https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi -OutFile chromeremotedesktophost.msi
           Start-Process msiexec.exe -ArgumentList '/i chromeremotedesktophost.msi /qn' -Wait
-          
-      - name: เปิดการใช้งานและเชื่อมต่อ
+
+      - name: เริ่มการเชื่อมต่อ
         shell: powershell
         run: |
-          # ใช้รหัสจาก Secrets ที่คุณคัดลอกมาจาก Google
-          ${{ secrets.CHROME_DESKTOP_CODE }} --pin=${{ secrets.PIN }}
-          
-      - name: ป้องกัน Workflow ปิดตัว (รันต่อเนื่อง 6 ชั่วโมง)
+          # รับค่าจากช่อง Input ที่คุณกรอก
+          ${{ github.event.inputs.auth_code }} --pin=${{ github.event.inputs.pincode }}
+
+      - name: รักษาสถานะออนไลน์ (6 ชั่วโมง)
         run: |
+          Write-Host "Windows 11 พร้อมใช้งานแล้ว! ตรวจสอบที่หน้า Chrome Remote Desktop"
           $n = 360
-          do {
-            Write-Host "Windows กำลังทำงาน... เหลือเวลาอีกประมาณ $n นาที"
+          while($n -gt 0) {
+            Write-Host "เหลือเวลา: $n นาที"
             Start-Sleep -Seconds 60
             $n--
-          } while ($n -gt 0)
+          }
