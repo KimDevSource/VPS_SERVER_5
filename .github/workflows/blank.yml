@@ -1,12 +1,11 @@
-name: Windows-11-Remote-Custom
+name: Windows-11-3Hours
 
 on: 
   workflow_dispatch:
     inputs:
       auth_code:
-        description: 'วางโค้ด Windows (PowerShell) จาก Chrome Remote Desktop'
+        description: 'วางโค้ดจาก Chrome Remote Desktop'
         required: true
-        default: ''
       pincode:
         description: 'ตั้งรหัส PIN 6 หลัก'
         required: true
@@ -16,23 +15,24 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: ติดตั้ง Chrome Remote Desktop
+      - name: เตรียมระบบและติดตั้ง Chrome Remote Desktop
         run: |
           Invoke-WebRequest -Uri https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi -OutFile chromeremotedesktophost.msi
           Start-Process msiexec.exe -ArgumentList '/i chromeremotedesktophost.msi /qn' -Wait
 
-      - name: เริ่มการเชื่อมต่อ
+      - name: เริ่มการเชื่อมต่อด้วย PowerShell
         shell: powershell
         run: |
-          # รับค่าจากช่อง Input ที่คุณกรอก
+          # คำสั่งที่ได้รับจาก Input จะถูกรันที่นี่
           ${{ github.event.inputs.auth_code }} --pin=${{ github.event.inputs.pincode }}
 
-      - name: รักษาสถานะออนไลน์ (6 ชั่วโมง)
+      - name: รันระบบต่อเนื่อง 3 ชั่วโมง
         run: |
-          Write-Host "Windows 11 พร้อมใช้งานแล้ว! ตรวจสอบที่หน้า Chrome Remote Desktop"
-          $n = 360
-          while($n -gt 0) {
-            Write-Host "เหลือเวลา: $n นาที"
+          Write-Host "--- VPS เริ่มทำงานแล้ว (ระยะเวลา 3 ชั่วโมง) ---"
+          $minutes = 180
+          while($minutes -gt 0) {
+            Write-Host "เหลือเวลาอีก: $minutes นาที..."
             Start-Sleep -Seconds 60
-            $n--
+            $minutes--
           }
+          Write-Host "หมดเวลา 3 ชั่วโมงแล้ว ระบบกำลังปิดตัว"
